@@ -13,7 +13,7 @@ class Node(storage.Base):
     pub_key = Column(String)
 
     def __init__(self, ip_address):
-        self.type = "N"
+        self.type = "n"
         self.ip_address = ip_address
         self.pub_key = ""
 

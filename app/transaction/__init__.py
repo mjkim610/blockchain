@@ -1,6 +1,7 @@
 import datetime
 import json
 from app.communicator import sender
+from dateutil import parser
 
 from sqlalchemy import Column, String, Integer, DateTime
 
@@ -20,13 +21,15 @@ class Transaction(storage.Base):
 
 
     def __init__(self):
-        self.type = "T"
+        self.type = "t"
         self.time_stamp = datetime.datetime.now()
         self.tx_id = self.type + self.time_stamp.strftime("%Y%m%d%H%M%S")
         self.pub_key = ""
         self.message = ""
         self.signature = ""
 
+    def __str__(self):
+        return self.to_json()
 
     def to_json(self):
         return json.dumps({
@@ -58,5 +61,5 @@ def create_tx(pub_key, pri_key, msg):
 
 
 def send_tx(tx):
-    sender.send_to_all_nodes(tx.to_json)
+    sender.send_to_all_node(tx.to_json)
     #TODO: create sender package
