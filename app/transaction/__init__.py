@@ -7,7 +7,8 @@ from app import storage
 
 
 class Transaction(storage.Base):
-    __tablename__ = "transaction"
+    __tablename__ = "transactions"
+
     _id = Column(Integer, primary_key=True, autoincrement=True)
     type = Column(String)
     time_stamp = Column(DateTime)
@@ -20,7 +21,7 @@ class Transaction(storage.Base):
     def __init__(self):
         self.type = "T"
         self.time_stamp = datetime.datetime.now()
-        self.tx_id = self.type + self.time_stamp.strftime('%Y%m%d%H%M%S')
+        self.tx_id = self.type + self.time_stamp.strftime("%Y%m%d%H%M%S")
         self.pub_key = ""
         self.message = ""
         self.signature = ""
@@ -29,7 +30,7 @@ class Transaction(storage.Base):
     def to_json(self):
         return json.dumps({
             'type': self.type,
-            'time_stamp': self.time_stamp.strftime('%Y%m%d%H%M%S'),
+            'time_stamp': self.time_stamp.strftime("%Y%m%d%H%M%S"),
             'tx_id': self.tx_id,
             'pub_key': self.pub_key,
             'message': self.message,
@@ -41,7 +42,7 @@ def add_transaction(tx):
     storage.init(tx)
 
 
-def get_Transactions():
+def get_transactions():
     storage.get_all(Transaction)
 
 
@@ -51,6 +52,8 @@ def create_tx(pub_key, pri_key, msg):
 
     tx.pub_key = pub_key
     #TODO: encrypt tx code
+
+    return tx
 
 
 def send_tx(tx):
