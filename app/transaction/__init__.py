@@ -1,5 +1,6 @@
 import datetime
 import json
+from app.communicator import sender
 
 from sqlalchemy import Column, String, Integer, DateTime
 
