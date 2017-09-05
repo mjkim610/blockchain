@@ -7,7 +7,7 @@ logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('[%(levelname)s|%(filename)s:%(lineno)s] %(asctime)s > %(message)s')
 
 # fileHandler와 StreamHandler를 생성
-fileHandler = logging.FileHandler('./log/my.log')
+fileHandler = logging.FileHandler('/Users/mjkim/my.log')
 streamHandler = logging.StreamHandler()
 
 #  handler에 fommater 세팅
