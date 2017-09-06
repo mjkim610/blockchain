@@ -16,11 +16,13 @@ def send(ip_address, message, port, *args):
 def send_to_all_node(message):
     address_list = list(map(lambda x: x.ip_address, node.get_all()))
 
-    send_thread = []
+    send_threads = []
 
     for addr in address_list:
         try:
-            t = threading.Thread(target = send, args={"ip_address": addr, "message": message, "port": 3399})
-            send_thread.append(t)
+            t = threading.Thread(target = send, kwargs={"ip_address": addr, "message": message, "port": 3399})
+            send_threads.append(t)
         except Exception as e:
             print("Exception (send_to_all_node): ", e)
+    for thread in send_threads:
+        thread.join()

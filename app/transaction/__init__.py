@@ -42,12 +42,20 @@ class Transaction(storage.Base):
         })
 
 
+    def from_json(self, dictionary):
+        for key in dictionary:
+            setattr(self, key, dictionary[key])
+
+        self.time_stamp = parser.parse(self.time_stamp)
+        return self
+
+
 def add_transaction(tx):
     storage.init(tx)
 
 
 def get_transactions():
-    storage.get_all(Transaction)
+    return storage.get_all(Transaction)
 
 
 def create_tx(pub_key, pri_key, msg):

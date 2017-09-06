@@ -37,6 +37,9 @@ def send_tx():
     tx = transaction.create_tx(pub_key, pri_key, message)
     transaction.send_tx(tx)
 
+    main_menu()
+    return
+
 
 def show_node_list():
     from app import node, log
@@ -44,6 +47,7 @@ def show_node_list():
 
     for n in node.get_all():
         log.write(n, logging.DEBUG)
+    main_menu()
 
 
 def show_transaction_list():
@@ -54,10 +58,11 @@ def show_transaction_list():
 
     if len(tx_list) == 0:
         print("No transaction to show")
-        main_menu()
     else:
-        for t in transaction.get_transactions():
+        for t in tx_list:
             log.write(t, logging.DEBUG)
+    main_menu()
+
 
 menu_actions = {
     "main_menu": main_menu,
