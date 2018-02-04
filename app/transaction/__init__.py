@@ -1,11 +1,13 @@
 import datetime
 import json
-from app.communicator import sender
+import codecs
 from dateutil import parser
 
 from sqlalchemy import Column, String, Integer, DateTime
 
 from app import storage
+from app import key
+from app.communicator import sender
 
 
 class Transaction(storage.Base):
@@ -62,12 +64,16 @@ def create_tx(pub_key, pri_key, msg):
     tx = Transaction()
     tx.message = msg
 
-    tx.pub_key = pub_key
-    #TODO: encrypt tx code
+    pub_key_b = key.key_to_string(pub_key)
+    tx.pub_key = codecs.encode(pub_key_b, "hex_code").decode("utf-8")
+
+    msg = tx.time_Stamp.strftime("%Y%m%d%H%M%S") + msg
+
+    sig = key.get_signature(msg, pri_key)
+    tx.signature = codecs.encode(sig, "hex_code").decode("utf-8")
 
     return tx
 
 
 def send_tx(tx):
     sender.send_to_all_node(tx.to_json)
-    #TODO: create sender package
