@@ -28,6 +28,20 @@ class Blockchain(object):
         block_encoded = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_encoded).hexdigest()
 
+    @staticmethod
+    def is_valid_proof(prev_proof, proof):
+        """
+        Validate the proof
+
+        :param prev_proof: <int> previous Proof
+        :param proof: <current Proof
+        :return: <bool>
+        """
+
+        guess = f'{prev_proof}{proof}'.encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        return guess_hash[:4] == "0000"
+
     def create_new_block(self, proof, prev_hash):
         """
         Create a new Block in the Chain
@@ -70,3 +84,19 @@ class Blockchain(object):
         })
 
         return self.latest_block['index']+1
+
+    def get_proof(self, prev_proof):
+        """
+        Perform the Proof of Work algorithm
+            - Find a number p' such that hash(pp') contains 4 leading zeroes
+            - p is the previous Proof, p' is the current Proof
+
+        :param prev_proof: <int>
+        :return: <int>
+        """
+
+        proof = 0
+        while self.is_valid_proof(prev_proof, proof) is False:
+            proof += 1
+
+        return proof
