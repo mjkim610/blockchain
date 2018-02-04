@@ -2,8 +2,10 @@ import hashlib
 import json
 from argparse import ArgumentParser
 from time import time
+from urllib.parse import urlparse
 from uuid import uuid4
 
+import requests
 from flask import Flask, jsonify, request
 
 
@@ -11,6 +13,7 @@ class Blockchain(object):
     def __init__(self):
         self.chain = []
         self.utxo = []
+        self.nodes = set()
 
         # Create the Genesis Block
         self.create_new_block(proof=1337, prev_hash=1337)
@@ -45,6 +48,77 @@ class Blockchain(object):
         guess = f'{prev_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
+
+    def is_valid_chain(self, chain):
+        """
+        Validate a chain
+
+        :param chain: <list> a chain
+        :return: <bool>
+        """
+
+        cur_index = 1
+
+        while cur_index < len(chain):
+            prev_block = chain[cur_index-1]
+            cur_block = chain[cur_index]
+            print(f'{prev_block}')
+            print(f'{cur_block}')
+            print("\n---------\n")
+
+            # Check that the hash of the Block is correct
+            if cur_block['prev_hash'] != self.calculate_hash(prev_block):
+                return False
+
+            # Check that the Proof is correct
+            if not self.is_valid_proof(prev_block['proof'], cur_block['proof']):
+                return False
+
+            cur_index += 1
+
+        return True
+
+    def register_node(self, address):
+        """
+        Add a new Node to the list
+
+        :param address: <str> address of Node (eg. 'http://192.168.0.1:5000')
+        :return: None
+        """
+
+        parsed_url = urlparse(address)
+        self.nodes.add(parsed_url.netloc)
+
+    def resolve_conflicts(self):
+        """
+        Perform the Consensus algorithm
+        If there is a conflict, replace current Chain with the longest Chain in the network
+
+
+        :return: <bool> True if chain was replaced
+        """
+
+        new_chain = None
+        max_length = len(self.chain)
+
+        # Verify all the Chains in the network
+        for node in self.nodes:
+            response = requests.get(f'http://{node}/chain/get')
+
+            if response.status_code == 200:
+                cur_length = response.json()['length']
+                cur_chain = response.json()['chain']
+
+                # Check if length of Chain is longer and is valid
+                if cur_length > max_length and self.is_valid_chain(cur_chain):
+                    max_length = cur_length
+                    new_chain = cur_chain
+
+        if new_chain:
+            self.chain = new_chain
+            return True
+
+        return False
 
     def create_new_block(self, proof, prev_hash):
         """
