@@ -1,6 +1,10 @@
 import hashlib
 import json
+from argparse import ArgumentParser
 from time import time
+from uuid import uuid4
+
+from flask import Flask, jsonify, request
 
 
 class Blockchain(object):
@@ -100,3 +104,83 @@ class Blockchain(object):
             proof += 1
 
         return proof
+
+
+# Instantiate Node
+app = Flask(__name__)
+
+# Generate a uuid for this Node
+node_identifier = str(uuid4()).replace('-', '')
+
+# Instantiate Blockchain
+blockchain = Blockchain()
+
+
+@app.route('/mine', methods=['GET'])
+def mine():
+
+    # Get Proof for next new Block
+    latest_block = blockchain.latest_block
+    latest_proof = latest_block['proof']
+    proof = blockchain.get_proof(latest_proof)
+
+    # Use dummy sender with id `miner_reward` for mined coin
+    blockchain.create_new_transaction(
+        sender="miner_reward",
+        receiver=node_identifier,
+        amount=1,
+    )
+
+    # Create new Block and add to Chain
+    latest_hash = blockchain.calculate_hash(latest_block)
+    new_block = blockchain.create_new_block(proof, latest_hash)
+
+    response = {
+        'message': "New Block created",
+        'index': new_block['index'],
+        'transactions': new_block['transactions'],
+        'proof': new_block['proof'],
+        'prev_hash': new_block['prev_hash'],
+    }
+    return jsonify(response), 200
+
+
+@app.route('/transactions/create', methods=['POST'])
+def create_transaction():
+
+    values = request.get_json()
+
+    # Check that the required fields are in the POST data
+    required = ['sender', 'receiver', 'amount']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+
+    # Create a new Transaction
+    index = blockchain.create_new_transaction(
+        sender=values['sender'],
+        receiver=values['receiver'],
+        amount=values['amount'],
+    )
+
+    response = {'message': f'Transaction will be added to Block {index}'}
+    return jsonify(response), 201
+
+
+@app.route('/chain/get', methods=['GET'])
+def get_chain():
+
+    response = {
+        'length': len(blockchain.chain),
+        'chain': blockchain.chain,
+    }
+    return jsonify(response), 200
+
+
+if __name__ == '__main__':
+
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', default=5000, type=int, help='port number for web app')
+    args = parser.parse_args()
+    port = args.port
+
+    app.run(host='0.0.0.0', port=port)
