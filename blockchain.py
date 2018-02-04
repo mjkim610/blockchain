@@ -250,6 +250,43 @@ def get_chain():
     return jsonify(response), 200
 
 
+@app.route('/nodes/register', methods=['POST'])
+def register_nodes():
+
+    values = request.get_json()
+
+    nodes = values.get('nodes')
+    if nodes is None:
+        return "Error: Please provide a valid list of nodes", 400
+
+    for node in nodes:
+        blockchain.register_node(node)
+
+    response = {
+        'message': "New Nodes have been added",
+        'total_nodes': list(blockchain.nodes),
+    }
+    return jsonify(response), 201
+
+
+@app.route('/nodes/resolve', methods=['GET'])
+def resolve_conflicts():
+    replaced = blockchain.resolve_conflicts()
+
+    if replaced:
+        response = {
+            'message': "This node\'s chain has been replaced",
+            'new_chain': blockchain.chain,
+        }
+    else:
+        response = {
+            'message': "This node\'s chain is authoritative",
+            'chain': blockchain.chain,
+        }
+
+    return jsonify(response), 200
+
+
 if __name__ == '__main__':
 
     parser = ArgumentParser()
