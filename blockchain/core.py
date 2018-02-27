@@ -8,18 +8,18 @@ from uuid import uuid4
 import requests
 from flask import Flask, jsonify, request
 
-import db
+from blockchain import storage
 
 
 class Blockchain(object):
     def __init__(self):
         # Create database tables
-        db.create_table_nodes()
+        storage.node.create_table()
 
         # Initialize Blockchain elements
         self.chain = []
         self.utxo = []
-        self.nodes = db.read_nodes()
+        self.nodes = storage.node.read()
 
         # Create the Genesis Block
         self.create_new_block(proof=1337, prev_hash=1337)
@@ -94,7 +94,7 @@ class Blockchain(object):
 
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
-        db.add_nodes(self.nodes)
+        storage.node.add(self.nodes)
 
     def deregister_node(self, address):
         """
@@ -106,7 +106,7 @@ class Blockchain(object):
 
         parsed_url = urlparse(address)
         if (self.nodes.discard(parsed_url.netloc)):
-            db.remove_nodes(parsed_url.netloc)
+            storage.node.remove(parsed_url.netloc)
 
     def deregister_all_nodes(self):
         """
@@ -116,7 +116,7 @@ class Blockchain(object):
         """
 
         self.nodes = set()
-        db.remove_all_nodes()
+        storage.node.remove_all()
 
     def resolve_conflicts(self):
         """
@@ -293,7 +293,7 @@ def register_nodes():
 
     response = {
         'message': "New Nodes have been added",
-        'total_nodes': list(blockchain.nodes),
+        'cur_nodes': list(blockchain.nodes),
     }
     return jsonify(response), 201
 
@@ -312,7 +312,7 @@ def deregister_nodes():
 
     response = {
         'message': "Nodes have been removed",
-        'total_nodes': list(blockchain.nodes),
+        'cur_nodes': list(blockchain.nodes),
     }
     return jsonify(response), 200
 
@@ -324,7 +324,7 @@ def deregister_all_nodes():
 
     response = {
         'message': "All Nodes have been removed",
-        'total_nodes': list(blockchain.nodes),
+        'cur_nodes': list(blockchain.nodes),
     }
     return jsonify(response), 200
 

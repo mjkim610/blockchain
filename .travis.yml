@@ -8,8 +8,5 @@ install:
   - pip install pipenv
   - pipenv install --dev
 
-before_script:
-  - mkdir sqlite
-
 script:
   - pipenv run python -m unittest

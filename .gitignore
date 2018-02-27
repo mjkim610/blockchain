@@ -1,6 +1,9 @@
 # JetBrains IDE
 *.idea/
 
+# Databases
+*.db
+
 # Secrets
 secret/
 
